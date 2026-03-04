@@ -1,0 +1,75 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: composition-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - composition_network
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../composition/docker/backend.Dockerfile
+    container_name: composition-backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PORT: 3000
+    ports:
+      - "${BACKEND_PORT}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - composition_network
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../web
+      dockerfile: ../composition/docker/web.Dockerfile
+      args:
+        VITE_API_BASE_URL: http://backend:3000
+    container_name: composition-web
+    environment:
+      VITE_API_BASE_URL: http://backend:3000
+    ports:
+      - "${WEB_PORT}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - composition_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  composition_network:
+    driver: bridge

@@ -1,0 +1,90 @@
+{
+  "name": "fullstack-composition",
+  "label": "Fullstack Docker Composition",
+  "description": "Complete Docker Compose setup for full-stack development: PostgreSQL, Node.js Backend, React/Vite Frontend. Run all services with one command.",
+  "version": "1.0.0",
+  "type": "infrastructure",
+  "category": "docker-compose",
+  "tags": [
+    "docker",
+    "docker-compose",
+    "fullstack",
+    "postgres",
+    "nodejs",
+    "react",
+    "vite",
+    "infrastructure",
+    "composition"
+  ],
+  "prerequisites": [
+    "Docker (v20.10+)",
+    "Docker Compose (v2.0+)"
+  ],
+  "installTarget": {
+    "path": "app/composition",
+    "description": "Install composition files into app/composition directory"
+  },
+  "dependencies": [
+    {
+      "name": "clean-backend",
+      "installTarget": "app/backend",
+      "optional": false,
+      "description": "Node.js backend for composition"
+    },
+    {
+      "name": "react-spa",
+      "installTarget": "app/web",
+      "optional": false,
+      "description": "React/Vite frontend for composition"
+    },
+    {
+      "name": "postgres-dev",
+      "installTarget": "app/infra",
+      "optional": true,
+      "description": "PostgreSQL configuration (composition may define its own postgres service)"
+    },
+    {
+      "name": "api-contracts-openapi",
+      "installTarget": "app/contracts",
+      "optional": true,
+      "description": "API contracts and OpenAPI definitions"
+    }
+  ],
+  "services": {
+    "postgres": {
+      "image": "postgres:16-alpine",
+      "port": 5432,
+      "environment": "POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT"
+    },
+    "backend": {
+      "build": "../backend",
+      "dockerfile": "docker/backend.Dockerfile",
+      "port": 3000,
+      "healthcheck": "/health"
+    },
+    "web": {
+      "build": "../web",
+      "dockerfile": "docker/web.Dockerfile",
+      "port": 80,
+      "healthcheck": "/"
+    }
+  },
+  "quickStart": [
+    "cd app/composition",
+    "cp .env.example .env",
+    "./scripts/up.sh",
+    "./scripts/smoke-check.sh"
+  ],
+  "scripts": {
+    "up": "./scripts/up.sh",
+    "down": "./scripts/down.sh",
+    "smoke-check": "./scripts/smoke-check.sh"
+  },
+  "documentation": {
+    "README": "README.md",
+    "serviceMap": "docs/SERVICE-MAP.md"
+  },
+  "author": "Agentic Architecture",
+  "license": "MIT",
+  "lastUpdated": "2026-03-04"
+}
