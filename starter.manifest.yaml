@@ -1,0 +1,40 @@
+id: agentic-fullstack-composition
+name: Agentic Fullstack Composition
+version: 0.1.0
+type: composition
+installsInto: app/composition
+
+ownedPaths:
+  - app/composition
+
+dependencies: []
+
+optionalDependencies:
+  - agentic-clean-backend
+  - agentic-react-spa
+  - agentic-flutter-client
+  - agentic-postgres-dev
+  - agentic-api-contracts-api
+
+provides:
+  - docker-compose-runtime
+  - local-fullstack-orchestration
+  - service-composition-foundation
+
+requires:
+  - docker
+  - docker-compose
+
+postInstallChecks:
+  - docker compose configuration is valid
+  - composition files exist in target path
+  - services can be resolved by compose
+  - smoke startup command is valid
+
+tags:
+  - agentic
+  - starter
+  - composition
+  - docker
+  - orchestration
+  - fullstack
